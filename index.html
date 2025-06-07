@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hamming SEC-DED Code Simülatörü</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px;
+            line-height: 1.6;
+            background-color: #19007f;
+        }
+        h1 {
+            color: #ff482c;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .container {
+            background-color: #ff9900;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dddddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+            background-color: white;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #f60a0a;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 15px;
+            flex: 1;
+            min-width: 150px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #00fffb;
+        }
+        button.detect {
+            background-color: #e67e22;
+        }
+        button.correct {
+            background-color: #2ecc71;
+        }
+        .result-container {
+            margin-top: 30px;
+        }
+        .result-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 17px;
+        }
+        .bit-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+            align-items: flex-start;
+        }
+        .bit-box {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .data-bit {
+            background-color: #3b4ef7;
+            color: white;
+        }
+        .parity-bit {
+            background-color: #fff700;
+            color: #333;
+        }
+        .sec-bit {
+            background-color: #e91e63;
+            color: white;
+        }
+        .error-bit {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: #e74c3c;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .bit-number {
+    position: absolute;
+    bottom: 3px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 10px;
+    font-weight: normal;
+    color: #0fda00; 
+    white-space: nowrap; 
+}
+        .legend {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        .detection-result {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            background-color: #ff9900;
+        }
+        .bit-size-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .bit-size-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .result-section {
+            margin-bottom: 30px;
+        }
+        .code-display {
+            background-color: #ff9900;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .error-section {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hamming SEC-DED Code Simülatörü</h1>
+        
+        <div class="input-group">
+            <label>Veri Bit Uzunluğu Seçin:</label>
+            <div class="bit-size-selector">
+                <div class="bit-size-option">
+                    <input type="radio" id="bit8" name="bitSize" value="8" checked>
+                    <label for="bit8">8 Bit</label>
+                </div>
+                <div class="bit-size-option">
+                    <input type="radio" id="bit16" name="bitSize" value="16">
+                    <label for="bit16">16 Bit</label>
+                </div>
+                <div class="bit-size-option">
+                    <input type="radio" id="bit32" name="bitSize" value="32">
+                    <label for="bit32">32 Bit</label>
+                </div>
+            </div>
+            
+            <label for="binaryInput">Veri (sadece 0 ve 1):</label>
+            <input type="text" id="binaryInput" placeholder="Örn: 00011101">
+        </div>
+        
+        <div class="button-group">
+            <button onclick="createHammingCode()">Hamming Kodu Oluştur</button>
+            <button onclick="introduceSingleError()">Rastgele Tek Bit Hata Oluştur</button>
+            <button onclick="introduceDoubleError()">Rastgele Çift Bit Hata Oluştur</button>
+        </div>
+        
+        <div class="button-group">
+            <button class="detect" onclick="detectErrors()">Hata Tespit Et</button>
+            <button class="correct" onclick="correctErrors()">Hata Düzelt</button>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #3b4ef7;"></div>
+                <span>Veri Bitleri</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #fff700;"></div>
+                <span>Parite Bitleri</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #e91e63;"></div>
+                <span>SEC Bitleri</span>
+            </div>
+            <div class="legend-item">
+                <div class="error-bit" style="position: relative; top: 0; right: 0;"></div>
+                <span>Hatalı Bit</span>
+            </div>
+        </div>
+        
+        <div class="result-container">
+            <div class="result-section">
+                <div class="result-title">Hamming Kod:</div>
+                <div class="code-display">
+                    <div id="hammingCodeOutput" class="bit-container"></div>
+                </div>
+            </div>
+            
+            <div class="error-section">
+                <div class="result-title">Oluşturulan Hatalı Kod:
+                </div>
+                <div class="code-display">
+                    <div id="errorOutput" class="bit-container"></div>
+                </div>
+                <div id="detectionOutput" class="detection-result"></div>
+            </div>
+            
+            <div class="result-section">
+                <div class="result-title">Sonuçlar:</div>
+                <div id="correctionOutput" class="detection-result"></div>
+                <div class="code-display">
+                    <div id="correctedCodeOutput" class="bit-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        //hamming kodunu depolamak için olusturuyoruz
+        let hammingCode = {
+            original: [],
+            withError: [],
+            bitTypes: [], 
+            errorPositions: [], 
+            syndrome: 0, 
+            secBit: 0 
+        };
+
+        // hamming kodu oluşturmak için fonksiyon
+        function createHammingCode() {
+            const userInput = document.getElementById("binaryInput").value.trim();
+            const selectedBitSize = document.querySelector('input[name="bitSize"]:checked').value;
+            
+            // giriş dogru mu diye kontrol ediyoruz
+            const bitSizeRegex = new RegExp(`^[01]{${selectedBitSize}}$`);
+            if (!bitSizeRegex.test(userInput)) {
+                alert(`Lütfen ${selectedBitSize} bit uzunluğunda ikili veri girin!`);
+                return;
+            }
+            
+            // sagdakini sola alma islemi yapıyor ki istediğimiz sırayla bassın
+            const reversedInput = userInput.split("").reverse().join("");
+            
+            // hamming kodunu oluşturuyoruz
+            const result = computeHammingCode(reversedInput);
+            hammingCode.original = result.code;
+            hammingCode.withError = [...hammingCode.original];
+            hammingCode.bitTypes = result.bitTypes;
+            hammingCode.errorPositions = [];
+            hammingCode.syndrome = 0;
+            hammingCode.secBit = 0;
+            
+            // sonuclar için
+            displayHammingCode(hammingCode.original, hammingCode.bitTypes, "hammingCodeOutput");
+            document.getElementById("errorOutput").innerHTML = "";
+            document.getElementById("detectionOutput").textContent = "";
+            document.getElementById("correctionOutput").textContent = "";
+            document.getElementById("correctedCodeOutput").innerHTML = "";
+        }
+
+        // hamming kodunu hesaplamak için fonksiyon
+        function computeHammingCode(dataBits) {
+            const dataLength = dataBits.length;
+            let parityBitsCount = 0;
+            
+            // kaç parite biti gerektiğini hesaplıyoruz
+            while (Math.pow(2, parityBitsCount) < dataLength + parityBitsCount + 1) {
+                parityBitsCount++;
+            }
+            
+            const totalBits = dataLength + parityBitsCount + 1; // ekstra olan sec biti için
+            const hammingArray = new Array(totalBits + 1).fill(0); 
+            const bitTypes = new Array(totalBits + 1).fill(""); 
+            
+            // once veri bitlerini yerlestiriyoruz
+            let dataIndex = 0;
+            for (let position = 1; position <= totalBits; position++) {
+                // parite biti ve sec biti değilse
+                if (!isPowerOfTwo(position) && position !== totalBits) {
+                    hammingArray[position] = parseInt(dataBits[dataIndex]);
+                    bitTypes[position] = "data";
+                    dataIndex++;
+                }
+            }
+            
+            // pariteleri hesaplıyoruz
+            for (let i = 0; i < parityBitsCount; i++) {
+                const parityPos = Math.pow(2, i);
+                let parityValue = 0;
+                
+                for (let j = 1; j <= totalBits; j++) {
+                    if ((j & parityPos) !== 0 && j !== totalBits) {
+                        parityValue ^= hammingArray[j];
+                    }
+                }
+                
+                hammingArray[parityPos] = parityValue;
+                bitTypes[parityPos] = "parity";
+            }
+            
+            // sec bitini hesaplıyoruz
+            let secBit = 0;
+            for (let i = 1; i < totalBits; i++) {
+                secBit ^= hammingArray[i];
+            }
+            hammingArray[totalBits] = secBit;
+            bitTypes[totalBits] = "sec";
+            
+            return {
+                code: hammingArray.slice(1), 
+                bitTypes: bitTypes.slice(1) 
+            };
+        }
+
+        // rastgele bir hata eklemek için
+        function introduceSingleError() {
+            if (hammingCode.original.length === 0) {
+                alert("Önce Hamming kodu oluşturun!");
+                return;
+            }
+            
+            const errorData = [...hammingCode.original];
+            const errorPosition = Math.floor(Math.random() * errorData.length);
+            errorData[errorPosition] ^= 1; // Bit'i ters çevir
+            
+            hammingCode.withError = errorData;
+            hammingCode.errorPositions = [errorPosition];
+            hammingCode.syndrome = 0;
+            hammingCode.secBit = 0;
+            
+            // hatalı biti detaylı gostermek için
+            displayHammingCode(errorData, hammingCode.bitTypes, "errorOutput", [errorPosition]);
+            document.getElementById("detectionOutput").textContent = "";
+            document.getElementById("correctionOutput").textContent = "";
+            document.getElementById("correctedCodeOutput").innerHTML = "";
+        }
+
+        // rastgele cift bitlik hata ekleme
+        function introduceDoubleError() {
+            if (hammingCode.original.length === 0) {
+                alert("Önce Hamming kodu oluşturun!");
+                return;
+            }
+            
+            const errorData = [...hammingCode.original];
+            const errorPos1 = Math.floor(Math.random() * errorData.length);
+            let errorPos2 = Math.floor(Math.random() * errorData.length);
+            
+            // bitleri farklı secmemiz gerektiği için
+            while (errorPos2 === errorPos1) {
+                errorPos2 = Math.floor(Math.random() * errorData.length);
+            }
+            
+            errorData[errorPos1] ^= 1;
+            errorData[errorPos2] ^= 1;
+            
+            hammingCode.withError = errorData;
+            hammingCode.errorPositions = [errorPos1, errorPos2];
+            hammingCode.syndrome = 0;
+            hammingCode.secBit = 0;
+            
+            // üsttekiyle aynı mantık detaylı gosteriyoruz
+            displayHammingCode(errorData, hammingCode.bitTypes, "errorOutput", [errorPos1, errorPos2]);
+            document.getElementById("detectionOutput").textContent = "";
+            document.getElementById("correctionOutput").textContent = "";
+            document.getElementById("correctedCodeOutput").innerHTML = "";
+        }
+
+        // hata tespiti için
+        function detectErrors() {
+            if (hammingCode.withError.length === 0) {
+                alert("Önce Hamming kodu oluşturun ve hata ekleyin!");
+                return;
+            }
+            
+            const receivedData = [0, ...hammingCode.withError]; 
+            const totalBits = receivedData.length - 1;
+            let parityBitsCount = 0;
+            
+            // parite sayısını hesaplamak için 
+            while (Math.pow(2, parityBitsCount) < totalBits) {
+                parityBitsCount++;
+            }
+            
+            let syndrome = 0;
+            
+            // sendromu hesaplıyoruz baslangıcta sıfır vermiştik
+            for (let i = 0; i < parityBitsCount; i++) {
+                const parityPos = Math.pow(2, i);
+                let parityValue = 0;
+                
+                for (let j = 1; j < totalBits; j++) {
+                    if ((j & parityPos) !== 0) {
+                        parityValue ^= receivedData[j];
+                    }
+                }
+                
+                if (parityValue !== 0) {
+                    syndrome += parityPos;
+                }
+            }
+            
+            // seci kontrol etmek için
+            let secBit = 0;
+            for (let i = 1; i <= totalBits; i++) {
+                secBit ^= receivedData[i];
+            }
+            
+            hammingCode.syndrome = syndrome;
+            hammingCode.secBit = secBit;
+            
+            let detectionMessage = "";
+            
+            if (syndrome === 0 && secBit === 0) {
+                detectionMessage = " Kodda hata bulunamadı.";
+            } else if (syndrome !== 0 && secBit === 1) {
+                detectionMessage = ` Tek bit hatalı.Hatalı bitin sendromu: ${syndrome}`;
+            } else if (syndrome === 0 && secBit === 1) {
+                detectionMessage = ` SEC biti (Bit ${totalBits}) hatalı tespit edildi.`;
+            } else {
+                detectionMessage = " Çift bit hatası bulundu.";
+            }
+            
+            document.getElementById("detectionOutput").innerHTML = detectionMessage;
+            document.getElementById("correctionOutput").textContent = "";
+            document.getElementById("correctedCodeOutput").innerHTML = "";
+        }
+
+        // hata duzeltmek icin
+        function correctErrors() {
+            if (hammingCode.withError.length === 0) {
+                alert("Lütfen önce Hamming kodu oluşturun ve hata ekleyin!");
+                return;
+            }
+            
+            if (hammingCode.syndrome === 0 && hammingCode.secBit === 0) {
+                alert("Lütfen önce hata tespit edin!");
+                return;
+            }
+            
+            const receivedData = [0, ...hammingCode.withError]; 
+            const totalBits = receivedData.length - 1;
+            const syndrome = hammingCode.syndrome;
+            const secBit = hammingCode.secBit;
+            
+            let correctionMessage = "";
+            const correctedData = [...receivedData];
+            let errorPositions = [];
+            
+            if (syndrome === 0 && secBit === 0) {
+                correctionMessage = "Kodda hata bulunamadı.";
+            } else if (syndrome !== 0 && secBit === 1) {
+                // bir bit hatalıysa
+                correctedData[syndrome] ^= 1;
+                errorPositions = [syndrome - 1]; 
+                correctionMessage = `${syndrome}.bit düzeltildi.`;
+            } else if (syndrome === 0 && secBit === 1) {
+                // sec biti hatalıysa
+                correctedData[totalBits] ^= 1;
+                errorPositions = [totalBits - 1]; 
+                correctionMessage = `SEC biti (Bit ${totalBits}) düzeltildi.`;
+            } else {
+                // cift bit hataliysa
+                correctionMessage = "Çift bit hatası düzeltilemez!";
+            }
+            
+            document.getElementById("correctionOutput").innerHTML = correctionMessage;
+            
+            // düzeltilmiş kod için
+            if (syndrome !== 0 && secBit === 1 || syndrome === 0 && secBit === 1) {
+                displayHammingCode(
+                    correctedData.slice(1), 
+                    hammingCode.bitTypes, 
+                    "correctedCodeOutput",
+                    errorPositions
+                );
+            } else {
+                document.getElementById("correctedCodeOutput").innerHTML = "";
+            }
+        }
+
+        // bitleri gorsellestirdik
+        function displayHammingCode(code, bitTypes, containerId, errorPositions = []) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = "";
+            
+            //kodu tekrar ters cevirdik
+            const reversedCode = [...code].reverse();
+            const reversedBitTypes = [...bitTypes].reverse();
+            
+            reversedCode.forEach((bit, index) => {
+                const originalIndex = code.length - 1 - index;
+                const bitBox = document.createElement("div");
+                bitBox.className = `bit-box ${reversedBitTypes[index]}-bit`;
+                bitBox.textContent = bit;
+                
+                // bit numaraları ekledik
+                const bitNumber = document.createElement("div");
+                bitNumber.className = "bit-number";
+                bitNumber.textContent = `${originalIndex + 1}.bit`; // 1.bit... şeklinde yazması için
+                bitBox.appendChild(bitNumber);
+                
+                // hatalı bitleri isaretliyoruz
+                if (errorPositions.includes(originalIndex)) {
+                    const errorMarker = document.createElement("div");
+                    errorMarker.className = "error-bit";
+                    errorMarker.textContent = "!";
+                    bitBox.appendChild(errorMarker);
+                }
+                
+                container.appendChild(bitBox);
+            });
+        }
+
+        // 2nin kuvvetimi diye bakmak çin
+        function isPowerOfTwo(num) {
+            return num !== 0 && (num & (num - 1)) === 0;
+        }
+    </script>
+</body>
+</html>
